@@ -34,6 +34,7 @@ import com.android.internal.R;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Map;
 
 public class PropImitationHooks {
 
@@ -46,6 +47,9 @@ public class PropImitationHooks {
     private static final String sStockFp =
             Resources.getSystem().getString(R.string.config_stockFingerprint);
 
+    private static final boolean sSpoofPhotos =
+            Resources.getSystem().getBoolean(R.bool.config_spoofGooglePhotos);
+
     private static final String sNetflixModel =
             Resources.getSystem().getString(R.string.config_netflixSpoofModel);
 
@@ -53,6 +57,17 @@ public class PropImitationHooks {
     private static final String PACKAGE_FINSKY = "com.android.vending";
     private static final String PACKAGE_GMS = "com.google.android.gms";
     private static final String PROCESS_GMS_UNSTABLE = PACKAGE_GMS + ".unstable";
+    private static final String PACKAGE_GPHOTOS = "com.google.android.apps.photos";
+
+    private static final Map<String, Object> sPixelXLProps = Map.of(
+        "BRAND", "google",
+        "MANUFACTURER", "Google",
+        "DEVICE", "marlin",
+        "PRODUCT", "marlin",
+        "MODEL", "Pixel XL",
+        "FINGERPRINT", "google/marlin/marlin:10/QP1A.191005.007.A3/5972272:user/release-keys"
+    );
+
     private static final String PACKAGE_NETFLIX = "com.netflix.mediaclient";
 
     private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
@@ -76,6 +91,7 @@ public class PropImitationHooks {
 
         /* Set Certified Properties for GMSCore
          * Set Stock Fingerprint for ARCore
+         * Set Pixel XL for Google Photos
          * Set custom model for Netflix
          */
         if (sIsGms) {
@@ -83,6 +99,9 @@ public class PropImitationHooks {
         } else if (!sStockFp.isEmpty() && packageName.equals(PACKAGE_ARCORE)) {
             dlog("Setting stock fingerprint for: " + packageName);
             setPropValue("FINGERPRINT", sStockFp);
+        } else if (sSpoofPhotos && packageName.equals(PACKAGE_GPHOTOS)) {
+            dlog("Spoofing Pixel XL for Google Photos");
+            sPixelXLProps.forEach((PropImitationHooks::setPropValue));
         } else if (!sNetflixModel.isEmpty() && packageName.equals(PACKAGE_NETFLIX)) {
             dlog("Setting model to " + sNetflixModel + " for Netflix");
             setPropValue("MODEL", sNetflixModel);
